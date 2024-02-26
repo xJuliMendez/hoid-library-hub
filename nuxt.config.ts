@@ -4,4 +4,7 @@ export default defineNuxtConfig({
   typescript: {
     typeCheck: true
   },
+  modules: [
+    '@unocss/nuxt',
+  ],
 })
