@@ -1,16 +1,17 @@
 <script setup lang="ts">
 import { useFileSystemAccess } from '@vueuse/core'
 
+
 const dataType = ref('Text') as Ref<'Text' | 'ArrayBuffer' | 'Blob'>
 const fileSystem = useFileSystemAccess({
 	dataType,
 	types: [{
-		description: 'Blob',
+		description: 'Text Files',
 		accept: {
-			'text/plain': ['.txt', '.html'],
-			'application/json': ['.json'],
-			'image/*': ['.png', '.gif', '.jpg', '.jpeg'],
-			'application/pdf': ['.pdf'],
+			// 'text/plain': ['.txt', '.html'],
+			// 'application/json': ['.json'],
+			// 'image/*': ['.png', '.gif', '.jpg', '.jpeg'],
+			// 'application/pdf': ['.pdf'],
 			'application/epub+zip': ['.epub'],
 
 		},
@@ -20,7 +21,6 @@ const fileSystem = useFileSystemAccess({
 
 
 
-const pdfBlob = ref<Blob | null>(null)
 
 async function onSave() {
 	await fileSystem.save()
@@ -31,10 +31,13 @@ const url = ref<string | null>(null)
 async function onOpen() {
 	await fileSystem.open()
 
-	const blob = new Blob([fileSystem.data.value], { type: 'application/pdf' })
 
-	url.value = URL.createObjectURL(blob)
+	const blob = new Blob([fileSystem.data.value] as Blob[], { type: 'text/plain' })
 
+	$fetch('/api/epub', {
+		method: 'POST',
+		body: blob,
+	})
 
 }
 </script>
@@ -42,6 +45,7 @@ async function onOpen() {
 	<div>
 		<h1>uploadasdasdas</h1>
 		<div>
+	
 			<button @click="onOpen">
 				Open
 			</button>
@@ -54,9 +58,6 @@ async function onOpen() {
 			<button @click="onSave">
 				Save
 			</button>
-		</div>
-		<div v-if="url">
-			<embed :src="url" width="100%" height="500px">
 		</div>
 	</div>
 </template>
