@@ -4,16 +4,19 @@ import fs from "fs"
 export default defineEventHandler(async (event) => {
   const formData: FormData = await readFormData(event)
 
-  const file = formData.get("file")
+  const requestFile = formData.get("file")
 
-  if (!file) {
+
+
+  if (!requestFile) {
     throw new Error("File not found")
   }
 
-  if (typeof file === "string")
+  if (typeof requestFile === "string")
     throw new Error("File is a string")
 
-  const fileBuffer = await file.arrayBuffer()
+  console.log(requestFile.name);
+  const fileBuffer = await requestFile.arrayBuffer()
 
   const zip = JSZip()
 
@@ -22,9 +25,16 @@ export default defineEventHandler(async (event) => {
 
   zipFile.forEach(async (relativePath, file) => {
 
+    const path = 'epub-folder/' + requestFile.name + '/' + relativePath
+
+    const directory = path.split("/").slice(0, -1).join("/")
+
+    if (!fs.existsSync(directory)) {
+      fs.mkdirSync(directory, { recursive: true })
+    }
 
     fs.writeFile(
-      `${relativePath}`,
+      path,
       await file.async('nodebuffer'),
       (err) => {
         if (err) {
@@ -33,28 +43,6 @@ export default defineEventHandler(async (event) => {
       }
     )
   })
-
-  // const oebpsFile = zipFile.file("OEBPS/content.opf")
-
-  // console.log(await oebpsFile?.async('string'));
-
-  // fs.writeFileSync("content.opf", await oebpsFile?.async('string') as string)
-
-
-  // const uint8Array = await zipFile.generateAsync({ type: "uint8array" })
-
-  // fs.writeFileSync("epub-folder", uint8Array)
-
-
-  // const zip = JSZip()
-
-  // const file = zip.file("hello.txt", body)
-
-  // file.generateAsync({ type: "nodebuffer" }).then((content) => {
-  //   fs.writeFileSync("epub.zip", content)
-  // })
-
-  // fs.writeFileSync("image.jpeg", body, 'binary')
 
   return {
     "okey": "dokey"
