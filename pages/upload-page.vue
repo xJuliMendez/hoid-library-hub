@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useFileSystemAccess } from '@vueuse/core'
-
+import fs from 'fs'
+import JSZip from 'jszip';
 
 const dataType = ref('Text') as Ref<'Text' | 'ArrayBuffer' | 'Blob'>
 const fileSystem = useFileSystemAccess({
@@ -10,10 +11,11 @@ const fileSystem = useFileSystemAccess({
 		accept: {
 			// 'text/plain': ['.txt', '.html'],
 			// 'application/json': ['.json'],
-			// 'image/*': ['.png', '.gif', '.jpg', '.jpeg'],
+			'image/*': ['.png', '.gif', '.jpg', '.jpeg'],
 			// 'application/pdf': ['.pdf'],
-			'application/epub+zip': ['.epub'],
-
+			// 'application/epub+zip': ['.epub'],
+			// 'application/zip': ['.zip'],
+			'text/plain': ['.txt'],
 		},
 	}],
 	excludeAcceptAllOption: true,
@@ -26,26 +28,54 @@ async function onSave() {
 	await fileSystem.save()
 }
 
-const url = ref<string | null>(null)
+const file = ref<File | null>(null)
+
+const onChangeFile = (e: Event) => {
+	const [_file] = (e.target as HTMLInputElement).files as FileList
+	
+	file.value = _file
+}
 
 async function onOpen() {
-	await fileSystem.open()
 
 
-	const blob = new Blob([fileSystem.data.value] as Blob[], { type: 'text/plain' })
 
-	$fetch('/api/epub', {
-		method: 'POST',
-		body: blob,
-	})
+	// console.log(fileSystem.data.value);
+	
 
+	// const zip = new JSZip()
+
+	// const result = await zip.loadAsync(fileSystem.data.value)
+
+	// const files = Object.keys(result.files)
+	// console.log(files);
+	
+}
+
+async function onSubmit() {
+	if (!file.value) 
+		return 
+
+	const form = new FormData()
+	form.append('file', file.value)
+
+	$fetch(
+		'api/epub',
+		{
+			method: 'POST',
+			body: form,
+		}
+	)
 }
 </script>
 <template>
 	<div>
 		<h1>uploadasdasdas</h1>
 		<div>
-	
+			<input type="file" @change="onChangeFile">
+			<button @click="onSubmit">
+				subir sosio
+			</button>
 			<button @click="onOpen">
 				Open
 			</button>
